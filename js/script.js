@@ -34,7 +34,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     /*ТАЙМЕР*/
-    let deadline = '2020-03-29'; /*дата до которой считает таймер*/
+    let deadline = '2020-09-31'; /*дата до которой считает таймер*/
 
     let getTimeRemaining = (endtime) => {
         let t = Date.parse(endtime) - Date.parse(new Date()); /*получаем разницу от дедлайна и датой-временем
@@ -87,13 +87,13 @@ window.addEventListener('DOMContentLoaded', () => {
     let overlay = document.querySelector('.overlay');
     let closeOverlay = document.querySelector('.popup-close');
 
-    openOverlay.addEventListener('click', function() {
+    openOverlay.addEventListener('click', () => {
         overlay.style.display = 'block'; /*показываем модальное окно на странице*/
         this.classList.add('more-splash');
         document.body.style.overflow = 'hidden' /*делаем невозможной прокрутку страницы пока показано модальное окно*/
     });
 
-    closeOverlay.addEventListener('click', function() {
+    closeOverlay.addEventListener('click', () => {
         overlay.style.display = 'none'; /*скрываем модальное окно со страницы*/
         openOverlay.classList.remove('more-splash');
         document.body.style.overflow = '' /*возвращаем прокрутку страницы*/
