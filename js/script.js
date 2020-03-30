@@ -94,95 +94,75 @@ window.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = 'hidden' /*делаем невозможной прокрутку страницы пока показано модальное окно*/
     });
 
-    closeOverlay.addEventListener('click', function() {
+    closeOverlay.addEventListener('click', () => {
         overlay.style.display = 'none'; /*скрываем модальное окно со страницы*/
         openOverlay.classList.remove('more-splash');
         document.body.style.overflow = '' /*возвращаем прокрутку страницы*/
     });
 
-    /*ФОРМА Модального окна*/
+    /*ФОРМА Модального окна и Контактов с помощью промисов*/
+    /*сообщения которые будут появляться при ответах с сервера*/
     let message = {
         loading: 'Загрузка...',
         success: 'Спасибо! Скоро мы с Вами свяжемся!',
         failure: 'Что-то пошло не так'
     };
-    /*получаем форму и ее инпуты*/
+    /*получаем формы и их инпуты*/
     let form = document.querySelector('.main-form');
+    let contactForm = document.querySelector('#form');
     let inputs = document.getElementsByTagName('input');
     /*создаем новый блок, в который будем помещать сообщение, который будет вылезать после отправки формы*/
     let statusMessage = document.createElement('div');
     statusMessage.classList.add('status');
-    /*вешаем обработчик отправки формы (submit) не на кнопку, а на всю форму!*/
-    form.addEventListener('submit', function(event) {
-        event.preventDefault(); /*отменяем стандартное поведение формы перезагружать страницу при сабмите*/
-        form.appendChild(statusMessage); /*когда происходит сабмит, вставляем statusMessage в конец родительского блока*/
-
-        /*создаем и настраиваем запрос*/
-        let request = new XMLHttpRequest();
-        request.open('POST', 'server.php');
-        request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-        /*с помощью FormData получаем данные, которые пользователь ввел в форме в виде ключ-значение*/
-        let formData = new FormData(form);
-        /*чтоб перевести эти данные в JSON, создадим пустой {} и с помощью forEach закинем в него все данные {}*/
-        let obj = {};
-        formData.forEach((value, key) => {
-            obj[key] = value
-        });
-        /*превратим {} в JSON при помощи stringify и отправим его на сервер*/
-        let json = JSON.stringify(obj);
-        request.send(json);
-        /*обрабатываем состояние запроса и относительно него показываем различый message*/
-        request.addEventListener('readystatechange', function () {
-            if (request.readyState < 4) {
-                statusMessage.textContent = message.loading
-            } else if (request.readyState === 4 && request.status === 200) {
-                statusMessage.textContent = message.success
-            } else {
-                statusMessage.textContent = message.failure
+    function sendForm(element) {
+        /*вешаем обработчик отправки формы (submit) не на кнопку, а на всю форму!*/
+        element.addEventListener('submit', function(event) {
+            /*отменяем стандартное поведение формы перезагружать страницу при сабмите*/
+            event.preventDefault();
+            /*когда происходит сабмит, вставляем statusMessage в конец родительского блока*/
+            element.appendChild(statusMessage);
+            /*с помощью FormData получаем данные, которые пользователь ввел в форме в виде ключ-значение*/
+            let formData = new FormData(element);
+            /*чтоб перевести эти данные в JSON, создадим пустой {} и с помощью forEach закинем в него все данные {}*/
+            let obj = {};
+            formData.forEach((value, key) => {
+                obj[key] = value
+            });
+            /*превратим {} в JSON при помощи stringify и отправим его на сервер*/
+            let json = JSON.stringify(obj);
+            function postData(data) {
+                /*создаем промис чтоб последовательно идти по скрипту и не создавать ад колбеков*/
+                return new Promise(function (resolve, reject) {
+                    /*создаем, настраиваем и отправляем запрос*/
+                    let request = new XMLHttpRequest();
+                    request.open('POST', 'server.php');
+                    request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+                    /*обрабатываем состояние запроса и относительно него идем в then или в catch*/
+                    request.onreadystatechange = function() {
+                        if (request.readyState < 4) {
+                            resolve()
+                        } else if (request.readyState === 4 && request.status === 200 && request.status < 300) {
+                            resolve()
+                        } else {
+                            reject()
+                        }
+                    };
+                    request.send(data);
+                })
             }
-        });
-        /*после сабмита зачищаем инпуты*/
-        for (let i=0; i < inputs.length; i++) {
-            inputs[i].value = ''
-        }
-    })
-
-    /*ФОРМА Контактной формы*/
-    let contactMessage = {
-        loading: 'Загрузка...',
-        success: 'Спасибо! Скоро мы с Вами свяжемся!',
-        failure: 'Что-то пошло не так'
-    };
-    let contactForm = document.querySelector('#form');
-    let contactInputs = contactForm.querySelectorAll('input');
-    let contactStatusMessage = document.createElement('div');
-    contactStatusMessage.classList.add('status');
-
-    contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        contactForm.appendChild(contactStatusMessage);
-
-        let request = new XMLHttpRequest();
-        request.open('POST', 'server.php');
-        request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-        let formData = new FormData(contactForm);
-        let obj = {};
-        formData.forEach((value, key) => {
-            obj[key] = value
-        });
-        let json = JSON.stringify(obj);
-        request.send(json);
-        request.addEventListener('readystatechange', () => {
-            if (request.readyState < 4) {
-                contactStatusMessage.textContent = contactMessage.loading
-            } else if (request.readyState === 4 && request.status === 200) {
-                contactStatusMessage.textContent = contactMessage.success
-            } else {
-                contactStatusMessage.textContent = contactMessage.failure
+            /*после сабмита зачищаем инпуты*/
+            function clearInput() {
+                for (let i=0; i < inputs.length; i++) {
+                    inputs[i].value = ''
+                }
             }
-        });
-        for (let i=0; i < contactInputs.length; i++) {
-            contactInputs[i].value = ''
-        }
-    })
+            postData(json)
+                .then(() => statusMessage.textContent = message.loading)
+                .then(() => statusMessage.textContent = message.success)
+                .catch(() => statusMessage.textContent = message.failure)
+                .finally(() => clearInput())
+        })
+    }
+    sendForm(form);
+    sendForm(contactForm)
 });
