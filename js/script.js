@@ -88,19 +88,19 @@ window.addEventListener('DOMContentLoaded', () => {
     let overlay = document.querySelector('.overlay');
     let closeOverlay = document.querySelector('.popup-close');
 
-    openOverlay.addEventListener('click', () => {
+    openOverlay.addEventListener('click', function() {
         overlay.style.display = 'block'; /*показываем модальное окно на странице*/
         this.classList.add('more-splash');
         document.body.style.overflow = 'hidden' /*делаем невозможной прокрутку страницы пока показано модальное окно*/
     });
 
-    closeOverlay.addEventListener('click', () => {
+    closeOverlay.addEventListener('click', function() {
         overlay.style.display = 'none'; /*скрываем модальное окно со страницы*/
         openOverlay.classList.remove('more-splash');
         document.body.style.overflow = '' /*возвращаем прокрутку страницы*/
     });
 
-    /*ФОРМА*/
+    /*ФОРМА Модального окна*/
     let message = {
         loading: 'Загрузка...',
         success: 'Спасибо! Скоро мы с Вами свяжемся!',
@@ -144,6 +144,45 @@ window.addEventListener('DOMContentLoaded', () => {
         /*после сабмита зачищаем инпуты*/
         for (let i=0; i < inputs.length; i++) {
             inputs[i].value = ''
+        }
+    })
+
+    /*ФОРМА Контактной формы*/
+    let contactMessage = {
+        loading: 'Загрузка...',
+        success: 'Спасибо! Скоро мы с Вами свяжемся!',
+        failure: 'Что-то пошло не так'
+    };
+    let contactForm = document.querySelector('#form');
+    let contactInputs = contactForm.querySelectorAll('input');
+    let contactStatusMessage = document.createElement('div');
+    contactStatusMessage.classList.add('status');
+
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        contactForm.appendChild(contactStatusMessage);
+
+        let request = new XMLHttpRequest();
+        request.open('POST', 'server.php');
+        request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+        let formData = new FormData(contactForm);
+        let obj = {};
+        formData.forEach((value, key) => {
+            obj[key] = value
+        });
+        let json = JSON.stringify(obj);
+        request.send(json);
+        request.addEventListener('readystatechange', () => {
+            if (request.readyState < 4) {
+                contactStatusMessage.textContent = contactMessage.loading
+            } else if (request.readyState === 4 && request.status === 200) {
+                contactStatusMessage.textContent = contactMessage.success
+            } else {
+                contactStatusMessage.textContent = contactMessage.failure
+            }
+        });
+        for (let i=0; i < contactInputs.length; i++) {
+            contactInputs[i].value = ''
         }
     })
 });
