@@ -1,4 +1,5 @@
-logo/
-img/
-icons/
+src/logo/
+src/img/
+src/icons/
 .idea/
+node_modules/
